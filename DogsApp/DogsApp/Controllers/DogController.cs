@@ -18,7 +18,7 @@ namespace DogsApp.Controllers
 
 
         // GET: DogController
-        public ActionResult Index()
+        public ActionResult Index(string searchStringBreed, string searchStringName)
         {
             List<DogAllViewModel> dogs = _context.Dogs.
                 Select(dogFromDb => new DogAllViewModel
@@ -29,6 +29,19 @@ namespace DogsApp.Controllers
                     Breed = dogFromDb.Breed,
                     Picture = dogFromDb.Picture
                 }).ToList();
+
+            if (!String.IsNullOrEmpty(searchStringBreed) && !String.IsNullOrEmpty(searchStringName))
+            {
+                dogs = dogs.Where(d => d.Breed.Contains(searchStringBreed) && d.Name.Contains(searchStringName)).ToList();
+            }
+            else if (!String.IsNullOrEmpty(searchStringBreed))
+            {
+                dogs = dogs.Where(d => d.Breed.Contains(searchStringBreed)).ToList();
+            }
+            else if (!String.IsNullOrEmpty(searchStringName))
+            {
+                dogs = dogs.Where(d => d.Name.Contains(searchStringName)).ToList();
+            }
             return View(dogs);
         }
 
@@ -133,24 +146,43 @@ namespace DogsApp.Controllers
         }
 
         // GET: DogController/Delete/5
-        public ActionResult Delete(int id)
+        public ActionResult Delete(int? id)
         {
-            return View();
+            if (id==null)
+            {
+                return NotFound();
+            }
+            Dog? item = _context.Dogs.Find(id);
+            if (item == null)
+            {
+                return NotFound();
+            }
+            DogEditViewModel dog = new DogEditViewModel()
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Age = item.Age,
+                Breed = item.Breed,
+                Picture = item.Picture
+            };
+
+            return View(dog);
         }
 
         // POST: DogController/Delete/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Delete(int id, IFormCollection collection)
+        public ActionResult Delete(int id)
         {
-            try
+            Dog? item = _context.Dogs.Find(id);
+            if (item == null)
             {
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                return View();
-            }
+                return NotFound();
+            }    
+            _context.Dogs.Remove(item);
+            _context.SaveChanges();
+            return this.RedirectToAction("Index", "Dog");
+            
         }
     }
 }
