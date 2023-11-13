@@ -1,3 +1,5 @@
+using DogsApp.Core.Contacts;
+using DogsApp.Core.Services;
 using DogsApp.Infrastructure.Data;
 
 
@@ -24,6 +26,7 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 })
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+builder.Services.AddTransient<IDogService, DogService>();
 
 var app = builder.Build();
 
